@@ -1,0 +1,71 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: funder-bridge
+  namespace: default
+  labels:
+    app: funder-bridge
+    environment: production
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: funder-bridge
+      environment: production
+  template:
+    metadata:
+      labels:
+        app: funder-bridge
+        environment: production
+    spec:
+      containers:
+        - name: funder-bridge
+          image: europe-west1-docker.pkg.dev/fuse-network/funder-bridge/funder-bridge:latest
+          command: ["npm", "run", "dev"]
+          env:
+            - name: WEB3_PROVIDER
+              valueFrom:
+                configMapKeyRef:
+                  name: funder-bridge
+                  key: web3_provider
+            - name: CONTRACT_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: funder-bridge
+                  key: contract_address
+            - name: PUBLIC_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: funder-bridge
+                  key: public_api_key
+            - name: AIRDROP_AMOUNT
+              valueFrom:
+                configMapKeyRef:
+                  name: funder-bridge
+                  key: airdrop_amount
+
+            # Secret
+            - name: PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: funder-bridge
+                  key: private_key
+            - name: MONGO_URL
+              valueFrom:
+                secretKeyRef:
+                  name: funder-bridge
+                  key: mongo_url
+
+          # Resources
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 500m
+              memory: 1Gi

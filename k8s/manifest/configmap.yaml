@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: funder-bridge
+  namespace: default
+  labels:
+    app: funder-bridge
+    environment: production
+data:
+  web3_provider: "https://rpc.fuse.io"
+  contract_address: "0x353af4878d7452e974538706273887F7ED90Da47"
+  public_api_key: "pk_Kn-NHuXpHT_2YaBMIz7vDf4X"
+  airdrop_amount: "0.01"

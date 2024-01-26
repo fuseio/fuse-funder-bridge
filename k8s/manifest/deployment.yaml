@@ -60,6 +60,11 @@ spec:
                 secretKeyRef:
                   name: funder-bridge
                   key: mongo_url
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: funder-bridge
+                  key: slack_webhook_url
 
           # Resources
           resources:

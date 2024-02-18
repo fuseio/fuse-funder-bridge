@@ -27,8 +27,12 @@ export const registerListeners = () => {
     const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS as string, ABI, provider);
     contract.on("WrapToken", (localToken: string, remoteToken: string, remoteChainId: number, to: string, amount: BigInt) => {
         console.log("WrapToken event:", localToken, remoteToken, remoteChainId, to, amount.toString());
-        checkBalance();
-        transfer(remoteToken, remoteChainId, to, amount);
+        try {
+            checkBalance();
+            transfer(remoteToken, remoteChainId, to, amount);
+        } catch (e) {
+            console.log("Error in WrapToken event:", e);
+        }
     });
 }
 

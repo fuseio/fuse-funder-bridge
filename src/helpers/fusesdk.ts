@@ -32,6 +32,7 @@ export const registerListeners = () => {
             transfer(remoteToken, remoteChainId, to, amount);
         } catch (e) {
             console.log("Error in WrapToken event:", e);
+            process.exit(1)
         }
     });
 }

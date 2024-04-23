@@ -15,7 +15,7 @@ const tokens = [
         name: 'WETH',
         address: '0x5622f6dc93e08a8b717b149677930c38d5d50682',
         decimals: 18,
-        min_amount: 0.004,
+        min_amount: 0.0025,
     },
 ]
 

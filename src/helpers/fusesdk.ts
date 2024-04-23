@@ -6,6 +6,7 @@ import { Variables } from "@fuseio/fusebox-web-sdk/dist/src/constants/variables"
 import { User } from "../models/users"
 import mongoose from "mongoose";
 import { sendLowBalanceAlert } from "./slack";
+import { getDecimals, getMinAmount } from "./tokens";
 dotenv.config();
 
 let fuseSDK: FuseSDK;
@@ -25,11 +26,11 @@ export const initFuseSDK = async () => {
 
 export const registerListeners = () => {
     const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS as string, ABI, provider);
-    contract.on("WrapToken", (localToken: string, remoteToken: string, remoteChainId: number, to: string, amount: BigInt) => {
+    contract.on("WrapToken", (localToken: string, remoteToken: string, remoteChainId: number, to: string, amount: bigint) => {
         console.log("WrapToken event:", localToken, remoteToken, remoteChainId, to, amount.toString());
         try {
             checkBalance();
-            transfer(remoteToken, remoteChainId, to, amount);
+            transfer(remoteToken, remoteChainId, to, amount, localToken);
         } catch (e) {
             console.log("Error in WrapToken event:", e);
             process.exit(1)
@@ -37,7 +38,7 @@ export const registerListeners = () => {
     });
 }
 
-const transfer = async (remoteToken: string, remoteChainId: number, to: string, amount: BigInt) => {
+const transfer = async (remoteToken: string, remoteChainId: number, to: string, amount: bigint, localToken: string) => {
     let balance = await provider.getBalance(to)
     if (balance.gt(0)) {
         console.log("Balance is greater than 0, skipping transfer");
@@ -51,6 +52,13 @@ const transfer = async (remoteToken: string, remoteChainId: number, to: string, 
         console.log("User not found, transferring");
         const newUser = new User({ user: to.toLowerCase(), remoteToken, remoteChainId, amount: amount.toString() });
         newUser.save();
+    }
+    const decimals = getDecimals(localToken.toLowerCase());
+    const tokenValue = ethers.utils.formatUnits(amount, decimals);
+    const minAmount = getMinAmount(localToken.toLowerCase()) || 10;
+    if (parseFloat(tokenValue) < minAmount) {
+        console.log("Amount is below minimum, skipping transfer");
+        return;
     }
     const value = ethers.utils.parseEther(process.env.AIRDROP_AMOUNT as string);
     const data = Uint8Array.from([]);

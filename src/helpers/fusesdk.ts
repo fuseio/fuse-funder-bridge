@@ -44,6 +44,13 @@ const transfer = async (remoteToken: string, remoteChainId: number, to: string, 
         console.log("Balance is greater than 0, skipping transfer");
         return;
     }
+    const decimals = getDecimals(localToken.toLowerCase());
+    const tokenValue = ethers.utils.formatUnits(amount, decimals);
+    const minAmount = getMinAmount(localToken.toLowerCase()) || 10;
+    if (parseFloat(tokenValue) < minAmount) {
+        console.log("Amount is below minimum, skipping transfer");
+        return;
+    }
     const user = await User.findOne({ user: to.toLowerCase() });
     if (user) {
         console.log("User found, no need to transfer");
@@ -52,13 +59,6 @@ const transfer = async (remoteToken: string, remoteChainId: number, to: string, 
         console.log("User not found, transferring");
         const newUser = new User({ user: to.toLowerCase(), remoteToken, remoteChainId, amount: amount.toString() });
         newUser.save();
-    }
-    const decimals = getDecimals(localToken.toLowerCase());
-    const tokenValue = ethers.utils.formatUnits(amount, decimals);
-    const minAmount = getMinAmount(localToken.toLowerCase()) || 10;
-    if (parseFloat(tokenValue) < minAmount) {
-        console.log("Amount is below minimum, skipping transfer");
-        return;
     }
     const value = ethers.utils.parseEther(process.env.AIRDROP_AMOUNT as string);
     const data = Uint8Array.from([]);
